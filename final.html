@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cropping tool</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            background-color: rgb(204, 199, 199);
+            display: grid;
+            place-items: center;
+            font-family: "Lexend", serif;
+        }
+
+        .big {
+            width: 830px;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: white;
+
+        }
+
+        .title {
+            padding: 5px 25px;
+            font-size: 25px;
+            font-family: "Lexend", serif;
+            font-optical-sizing: auto;
+            font-style: normal;
+        }
+
+        .pack {
+            /* border: 2px solid black; */
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .small1 {
+            padding: 0 20px;
+            border: 2px solid rgb(175, 205, 244);
+        }
+
+        .small2 {
+            padding: 0;
+            border: 2px solid rgb(175, 205, 244);
+            display: grid;
+            place-items: center;
+        }
+
+        .small2 img {
+            max-width: 100%;
+            max-height: 350px;
+        }
+
+        .filters_text {
+            font-size: 18px;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            border: black;
+            justify-content: space-evenly;
+        }
+
+        .filter {
+            width: 100px;
+            padding: 10px;
+            text-align: center;
+            border: 2px solid rgb(27, 123, 249);
+
+            border-radius: 10px;
+        }
+
+        .filter_selected {
+            background-color: rgb(27, 123, 249);
+            color: white;
+        }
+
+        .slider {
+            width: 100%;
+            height: 10px;
+            border-radius: 5px;
+            background: #8cb9e7;
+            box-shadow: -1px 1px 5px black;
+            outline: none;
+            opacity: 0.7;
+            -webkit-transition: .2s;
+            transition: opacity .2s;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #0145ff;
+            cursor: pointer;
+        }
+
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #0127ff;
+            cursor: pointer;
+        }
+
+        .display {
+            display: block;
+        }
+
+        .not_display {
+            display: none;
+        }
+
+        .rotate_and_flip {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+
+        .r1,
+        .r2,
+        .r3 {
+            width: 20px;
+            padding: 10px;
+            font-size: 20px;
+            border: 2px solid rgb(27, 123, 249);
+            border-radius: 5px;
+        }
+
+        .r4 {
+            width: 20px;
+            padding: 10px;
+            font-size: 20px;
+            border: 2px solid rgb(27, 123, 249);
+            border-radius: 5px;
+            transform: rotate(90deg);
+        }
+
+        .buttons {
+            padding: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+
+        .reset_button {
+            padding: 10px;
+            background-color: transparent;
+            border: 2px solid rgb(121, 150, 204);
+            border-radius: 5px;
+        }
+
+        /* .choose_image {
+            padding: 10px;
+
+            color: blue;
+            background-color: transparent;
+            border: 2px solid rgb(1, 90, 255);
+            border-radius: 5px;
+        } */
+
+        .save_image {
+            padding: 10px 30px;
+            color: white;
+            font-weight: 700;
+            background-color: rgb(0, 84, 240);
+            border: 2px solid rgb(0, 84, 240);
+            border-radius: 5px;
+        }
+
+        #label {
+            width: 300px;
+            height: 330px;
+            border: 2px dashed rgb(5, 126, 159);
+            text-align: center;
+        }
+
+        #label.dragover {
+            background-color: rgba(5, 126, 159, 0.2);
+            /* Change background color when dragover */
+        }
+
+        #upload {
+            display: none;
+        }
+
+        .upload_icon {
+            margin-top: 100px;
+            font-size: 70px;
+            color: rgb(5, 126, 159);
+        }
+
+        .canvas {
+            max-height: 360px;
+            max-width: 330px;
+        }
+
+        .flipped {
+            transform: scaleX(-1);
+        }
+
+        .flipp {
+            transform: scaleY(-1);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="big">
+        <div class="title">Easy Image Editor</div>
+        <br>
+        <div class="pack">
+            <div class="small1" style="width:260px;">
+                <p class="filters_text">Filters</p>
+                <div class="filters">
+                    <div class="filter filter_selected b_button">Brightness</div>
+                    <div class="filter o_button">Opacity</div>
+                    <div class="filter s_button">Saturation</div>
+                    <div class="filter g_button">Grayscale</div>
+                    <div class="filter bl_button">Blur</div> <!-- New Blur Button -->
+                    <div class="filter c_button">Contrast</div> <!-- New Contrast Button -->
+                    <div class="filter se_button">Sepia</div> <!-- New Sepia Button -->
+                    <div class="filter i_button">Invert</div> <!-- New Invert Button -->
+
+                </div>
+                <div class="scroller">
+                    <div class="scroller">
+                        <!-- Existing filters -->
+                        <div class="slidecontainer brightness not_display">
+                            <p>Brightness</p>
+                            <input type="range" min="1" max="200" value="100" class="slider b_slider" id="myRange"
+                                onchange="all_filters()">
+                        </div>
+                        <div class="slidecontainer opacity not_display">
+                            <p>Opacity</p>
+                            <input type="range" min="1" max="200" value="100" class="slider o_slider" id="myRange"
+                                onchange="all_filters()">
+                        </div>
+                        <div class="slidecontainer saturation not_display">
+                            <p>Saturation</p>
+                            <input type="range" min="1" max="200" value="100" class="slider s_slider" id="myRange"
+                                onchange="all_filters()">
+                        </div>
+                        <div class="slidecontainer grayscale not_display">
+                            <p>Grayscale</p>
+                            <input type="range" min="0" max="200" value="0" class="slider g_slider" id="myRange"
+                                onchange="all_filters()">
+                        </div>
+
+                        <!-- New filters -->
+                        <div class="slidecontainer blur not_display">
+                            <p>Blur</p>
+                            <input type="range" min="0" max="200" value="0" class="slider bl_slider" id="myRange"
+                                onchange="all_filters()">
+                        </div>
+                        <div class="slidecontainer contrast not_display">
+                            <p>Contrast</p>
+                            <input type="range" min="1" max="200" value="100" class="slider c_slider" id="myRange"
+                                onchange="all_filters()">
+                        </div>
+                        <div class="slidecontainer sepia not_display">
+                            <p>Sepia</p>
+                            <input type="range" min="0" max="200" value="0" class="slider se_slider" id="myRange"
+                                onchange="all_filters()">
+                        </div>
+                        <div class="slidecontainer invert not_display">
+                            <p>Invert</p>
+                            <input type="range" min="0" max="200" value="0" class="slider i_slider" id="myRange"
+                                onchange="all_filters()">
+                        </div>
+                    </div>
+
+                </div>
+                <p>Rotate and Flip</p>
+                <div class="rotate_and_flip">
+                    <div class="r1 " id="rotateLeft"><i class="fa-solid fa-rotate-left rotate_left"></i></div>
+                    <div class="r2 " id="rotateRight"><i class="fa-solid fa-rotate-right rotate_right"></i></div>
+                    <div class="r3 " id="flipHorizontal"><i class="fa-solid fa-right-left left_right"></i></div>
+                    <div class="r4 " id="flipVertical"><i class="fa-solid fa-right-left up_down"></i></div>
+                </div>
+                <br><br>
+            </div>
+            <div class="small2" style="width:470px;">
+                <label for="upload" id="label">
+                    <input type="file" name="image" id="upload" accept=".jpg, .jpeg, .png" onchange="display(event)">
+                    <i class="fas fa-upload upload_icon"></i><br><br>
+                    <p>Drag the File or Upload It</p>
+                </label>
+                <canvas class="canvas" height="360px" width="330px"></canvas>
+            </div>
+        </div>
+        <div class="buttons">
+            <div class="reset">
+                <button class="reset_button" id="reset">RESET FILTERS</button>
+            </div>
+            <div class="button">
+                <!-- <button class="choose_image">CHOOSE IMAGE</button> -->
+                &nbsp; &nbsp;
+                <button class="save_image" id="save">SAVE IMAGE</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+    const filters = [
+        { filter: "brightness", button: "b_button" },
+        { filter: "opacity", button: "o_button" },
+        { filter: "saturation", button: "s_button" },
+        { filter: "grayscale", button: "g_button" },
+        { filter: "blur", button: "bl_button" },
+        { filter: "contrast", button: "c_button" },
+        { filter: "sepia", button: "se_button" },
+        { filter: "invert", button: "i_button" }
+    ];
+
+    filters.forEach(f => {
+        document.querySelectorAll(`.${f.filter}`).forEach(el => el.style.display = 'none');
+        document.querySelector(`.${f.button}`).addEventListener("click", () => {
+            filters.forEach(fl => {
+                document.querySelectorAll(`.${fl.filter}`).forEach(el => el.style.display = 'none');
+                document.querySelector(`.${fl.button}`).classList.remove("filter_selected");
+            });
+            document.querySelectorAll(`.${f.filter}`).forEach(el => el.style.display = 'block');
+            document.querySelector(`.${f.button}`).classList.add("filter_selected");
+        });
+    });
+
+    document.querySelectorAll(".brightness").forEach(el => el.style.display = 'block');
+    document.querySelectorAll(".canvas").forEach(el => el.style.display = 'none');
+    document.querySelector('.canvas').style.transform = 'rotate(0deg) scaleX(1) scaleY(1)';
+});
+
+    </script>
+
+    <script>
+        window.brightness = 1;
+        window.opacity = 1;
+        window.saturation = 1;
+        window.grayscale = 0;
+        window.blur = 0;
+        window.contrast = 1;
+        window.sepia = 0;
+        window.invert = 0;
+
+
+
+        function all_filters() {
+            const b_slider = document.querySelector('.b_slider');
+            const o_slider = document.querySelector('.o_slider');
+            const s_slider = document.querySelector('.s_slider');
+            const g_slider = document.querySelector('.g_slider');
+            const bl_slider = document.querySelector('.bl_slider');
+            const c_slider = document.querySelector('.c_slider');
+            const se_slider = document.querySelector('.se_slider');
+            const i_slider = document.querySelector('.i_slider');
+            brightness = (b_slider.value) / 100;
+            opacity = (o_slider.value) / 100;
+            saturation = (s_slider.value) / 100;
+            grayscale = (g_slider.value) / 100;
+            blur = (bl_slider.value) / 100;
+            contrast = (c_slider.value) / 100;
+            sepia = (se_slider.value) / 100;
+            invert = (i_slider.value) / 100;
+
+            drawImage();
+
+        }
+
+
+
+
+        function display(event) {
+            const file = event.target.files[0];
+            const validExtensions = ['image/jpeg', 'image/png'];
+
+            // Check if the selected file is an image and has a valid extension
+            if (!file || !validExtensions.includes(file.type)) {
+                alert("Please select a valid image file (JPEG, JPG, PNG).");
+                return; // Exit the function if the file type is invalid
+            }
+
+            document.getElementsByClassName("canvas").src = URL.createObjectURL(file);
+
+            window.img = new Image();
+            img.src = URL.createObjectURL(file);
+
+            img.onload = function () {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas first
+                ctx.drawImage(img, 0, 0); // Draw the image onto the canvas
+                canvas.style.display = "block"; // Make canvas visible once the image is loaded
+            };
+
+            var x = document.getElementById("label");
+            if (x.style.display === "none") {
+                x.style.display = "block";
+            } else {
+                x.style.display = "none";
+            }
+            drawImage();
+        }
+
+
+        // Get elements
+        const label = document.getElementById("label");
+        const upload = document.getElementById("upload");
+        const canvas = document.querySelector(".canvas");
+        const ctx = canvas.getContext("2d");
+
+        // Prevent the default behavior for dragover and drop events
+        label.addEventListener("dragover", function (e) {
+            e.preventDefault(); // This is important to allow the drop
+            label.classList.add("dragover"); // Add a class to change the style on drag over
+        });
+
+        label.addEventListener("dragleave", function () {
+            label.classList.remove("dragover"); // Remove the dragover class when the drag leaves
+
+        });
+
+        label.addEventListener("drop", function (e) {
+            e.preventDefault();
+            label.classList.remove("dragover"); // Remove the dragover class on drop
+
+            const file = e.dataTransfer.files[0]; // Get the file that was dropped
+
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+
+                reader.onload = function (event) {
+                    window.img = new Image();
+                    img.src = event.target.result;
+
+                    img.onload = function () {
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas first
+                        ctx.drawImage(img, 0, 0); // Draw the image onto the canvas
+                        canvas.style.display = "block"; // Make canvas visible once the image is loaded
+                    };
+
+                    var x = document.getElementById("label");
+                    if (x.style.display === "none") {
+                        x.style.display = "block";
+                    } else {
+                        x.style.display = "none";
+                    }
+
+                };
+
+                reader.readAsDataURL(file); // Read the image file as a Data URL
+
+                drawImage();
+
+            } else {
+                alert("Please drop a valid image file.");
+            }
+        });
+
+
+
+        let rotation = 0, flipH = false, flipV = false;
+
+
+        document.getElementById('rotateLeft').addEventListener('click', () => {
+            if (flipH) {
+                rotation += 90;
+            } else {
+                rotation -= 90;
+            }
+            drawImage();
+            console.log(rotation);
+        });
+
+        document.getElementById('rotateRight').addEventListener('click', () => {
+            if (flipH) {
+                rotation -= 90;
+            } else {
+                rotation += 90;
+            }
+            drawImage();
+            console.log(rotation);
+
+        });
+
+        document.getElementById('flipHorizontal').addEventListener('click', () => {
+            flipH = !flipH;
+            drawImage();
+        });
+
+        document.getElementById('flipVertical').addEventListener('click', () => {
+            flipV = !flipV;
+            drawImage();
+        });
+
+        document.getElementById('save').addEventListener('click', () => {
+            console.log("image downloaded");
+
+            // Apply filters
+            ctx.filter = `
+        brightness(${brightness}) 
+        opacity(${opacity}) 
+        contrast(${contrast}) 
+        saturate(${saturation}) 
+        blur(${blur}px) 
+        sepia(${sepia}) 
+        grayscale(${grayscale}) 
+        invert(${invert})
+    `;
+
+            // Redraw the canvas to apply styles
+            ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height);
+            const link = document.createElement('a');
+            link.href = canvas.toDataURL();
+            link.download = 'edited-image.png';
+            link.click();
+        });
+
+        function drawImage() {
+            // Calculate new dimensions for the canvas based on rotation
+            if (rotation % 180 !== 0) {
+
+                console.log("jsjfks");
+                canvas.width = img.height;
+                canvas.height = img.width;
+            } else {
+                canvas.width = img.width;
+                canvas.height = img.height;
+            }
+
+            ctx.filter = `
+        brightness(${brightness}) 
+        opacity(${opacity}) 
+        contrast(${contrast}) 
+        saturate(${saturation}) 
+        blur(${blur}px) 
+        sepia(${sepia}) 
+        grayscale(${grayscale}) 
+        invert(${invert})
+    `;
+
+            // Clear the canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Save the current state
+            ctx.save();
+
+            // Translate to the center of the canvas
+            ctx.translate(canvas.width / 2, canvas.height / 2);
+
+            // Apply transformations
+            if (flipH) ctx.scale(-1, 1);
+            if (flipV) ctx.scale(1, -1);
+            ctx.rotate(rotation * Math.PI / 180);
+
+            // Draw the image, centered on the canvas
+            ctx.drawImage(img, -img.width / 2, -img.height / 2);
+
+            // Restore the original state
+            ctx.restore();
+        }
+
+        document.getElementById('reset').addEventListener('click', () => {
+            console.log("reset image");
+            rotation = 0;
+            flipH = false;
+            flipV = false;
+            brightness = 1;
+            opacity = 1;
+            saturation = 1;
+            grayscale = 0;
+            blur = 0;
+            contrast = 1;
+            sepia = 0;
+            invert = 0;
+            drawImage();
+
+
+        });
+
+
+    </script>
+    
+</body>
+
+</html>
